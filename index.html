@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>厦门工学院第一届跆拳道比赛计时器</title>
+    <div id="particles"></div>
+    <!--	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">-->
+    <link href="css/family=Material+Icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+    <!--    <link href='https://fonts.googleapis.com/css?family=Marcellus+SC' rel='stylesheet' type='text/css'>-->
+    <link href='css/family=Marcellus+SC.css' rel='stylesheet' type='text/css'>
+    <style type="text/css">
+        #particles {
+            width: 100%;
+            z-index: -1;
+            background-color: #26AFE3;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            min-width: 1000px;
+            background-size: cover;
+            -webkit-background-size: cover;
+            -o-background-size: cover;
+            background-position: center 0;
+        }
+    </style>
+    <div id="root"></div>
+
+   <!--<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>-->
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <link rel="stylesheet" href="./source/bootstrap.min.css">
+    <script src="./source/jquery-3.3.1.slim.min.js"></script>
+    <script src="./source/popper.min.js"></script>
+    <script src="./source/bootstrap.min.js"></script>
+    <script src="js/particles.js"></script>
+
+</head>
+<body>
+<input type="button1" class="button1" value="红方判罚" onclick="appendPoint1()">
+<div class="creatnewpoint1"><textarea styles="background-color:rgba(95,158,160)" cols="28" rows="1" id="collection1"
+                                      placeholder="红方犯规次数" readonly></textarea></div>
+
+<input type="button" class="but" value="青方判罚" onclick="appendPoint()">
+<div class="creatnewpoint"><textarea styles="background-color:rgba(95,158,160)" cols="28" rows="1" id="collection"
+                                     placeholder="青方犯规次数" readonly></textarea></div>
+<ul id="collection">
+</ul>
+<br/>
+<div class="timer"></div>
+<script type="text/javascript"></script>
+<style type="text/css">
+    body {
+        margin: 28px;
+        text-align: center;
+    }
+
+    .timer {
+        font-family: sans-serif;
+        display: inline-block;
+        padding: 60px 85px;
+        border-radius: 50px;
+        background: white;
+        text-align: center;
+    }
+
+    .timer__part {
+        font-size: 90px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .timer__btn {
+        width: 65px;
+        height: 65px;
+        margin-left: 16px;
+        border-radius: 50%;
+        border: none;
+        color: white;
+        background: #8208e6;
+        cursor: pointer;
+    }
+
+    .timer__btn--start {
+        background: #00b84c;
+    }
+
+    .timer__btn--stop {
+        background: #ff0256;
+    }
+
+    .timer__btn--onemin {
+        background: #0093E9;
+    }
+
+</style>
+<script type="text/javascript">
+    class Timer {
+        constructor(root) {
+            root.innerHTML = Timer.getHTML();
+
+            this.el = {
+                minutes: root.querySelector(".timer__part--minutes"),
+                seconds: root.querySelector(".timer__part--seconds"),
+                control: root.querySelector(".timer__btn--control"),
+                reset: root.querySelector(".timer__btn--reset"),
+                onemin: root.querySelector(".timer__btn--onemin")
+            };
+            this.interval = null;
+            this.remainingSeconds = 120;
+
+            this.el.control.addEventListener("click", () => {
+                if (this.interval === null) {
+                    this.start();
+                } else {
+                    this.stop();
+                }
+            });
+
+            this.el.reset.addEventListener("click", () => {
+                const inputMinutes = 1;
+
+                if (inputMinutes < 60) {
+                    this.stop();
+                    this.remainingSeconds = inputMinutes * 60;
+                    this.updateInterfaceTime();
+                }
+            });
+            this.el.onemin.addEventListener("click", () => {
+                this.stop();
+                this.remainingSeconds = 120;
+                this.updateInterfaceTime();
+            });
+        }
+
+        updateInterfaceTime() {
+            const minutes = Math.floor(this.remainingSeconds / 60);
+            const seconds = this.remainingSeconds % 60;
+
+            this.el.minutes.textContent = minutes.toString().padStart(2, "0");
+            this.el.seconds.textContent = seconds.toString().padStart(2, "0");
+        }
+
+        updateInterfaceControls() {
+            if (this.interval === null) {
+                this.el.control.innerHTML = `<span class="material-icons">play_arrow</span>`;
+                this.el.control.classList.add("timer__btn--start");
+                this.el.control.classList.remove("timer__btn--stop");
+            } else {
+                this.el.control.innerHTML = `<span class="material-icons">pause</span>`;
+                this.el.control.classList.add("timer__btn--stop");
+                this.el.control.classList.remove("timer__btn--start");
+            }
+        }
+
+        start() {
+            if (this.remainingSeconds === 0) return;
+
+            this.interval = setInterval(() => {
+                this.remainingSeconds--;
+                this.updateInterfaceTime();
+
+                if (this.remainingSeconds === 0) {
+                    this.stop();
+                }
+            }, 1000);
+
+            this.updateInterfaceControls();
+        }
+
+        stop() {
+            clearInterval(this.interval);
+
+            this.interval = null;
+
+            this.updateInterfaceControls();
+            const audio = new Audio('src/tkd.mp3');
+            audio.play();
+        }
+
+        static getHTML() {
+            return `
+			<span class="timer__part timer__part--minutes">02</span>
+			<span class="timer__part">:</span>
+			<span class="timer__part timer__part--seconds">00</span>
+			<button type="button" class="timer__btn timer__btn--control timer__btn--start">
+				<span class="material-icons">play_arrow</span>
+			</button>
+			<button type="button" class="timer__btn timer__btn--reset">
+				<span class="material-icons">timer</span>
+			</button>
+      <button type="button" class="timer__btn timer__btn--onemin">
+        <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M1 12H10.8L8.3 9.5L9.7 8.1L14.6 13L9.7 17.9L8.3 16.5L10.8 14H1V12M21 2H3C1.9 2 1 2.9 1 4V10.1H3V6H21V20H3V16H1V20C1 21.1 1.9 22 3 22H21C22.1 22 23 21.1 23 20V4C23 2.9 22.1 2 21 2" />
+</svg>
+      </button>
+		`;
+        }
+    }
+
+    new Timer(
+        document.querySelector(".timer")
+    );
+</script>
+<div id="container">
+    <div id="player1">
+        <div id="p1score">
+            <h1>红方</h1>
+            <ul>
+                <li class="scoreblock plus" onclick="addOne(score1)" id="1">+</li>
+                <li class="scoreblock minus" onclick="minusOne(score1)">-</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="scoren1">
+        <li id="p120" class="score" value=0></li>
+    </div>
+    <p class="score">:</p>
+    <li id="p220" class="score" value=0></li>
+    <div id="player2">
+        <div id="p2score">
+
+            <h1>青方</h1>
+            <ul>
+                <li class="scoreblock plus" onclick="addOne(score2)">+</li>
+                <li class="scoreblock minus" onclick="minusOne(score2)">-</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<style type="text/css">
+    .Button_Small_Info {
+        float: left;
+        margin: 0 auto;
+        border-top-left-radius: 30px;
+        border-top-right-radius: 30px;
+    }
+
+    * {
+        font-family: 'Marcellus SC', serif;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+
+    #container {
+        width: 100%;
+        margin: 5% auto;
+    }
+
+    #player1 {
+        /*background-color: background-color: #FBDA61;*/
+        background-color: #FBDA61;
+        /*background-image: linear-gradient(45deg, #FBDA61 0%, #FF5ACD 100%);*/
+        background-image: linear-gradient(0deg, red 0%, red 100%);
+        float: left;
+        /*width: 250px;*/
+        width: 200px;
+        /*height: 450px;*/
+        height: 350px;
+        margin: 0 auto;
+    }
+
+    #player1 h1,
+    #player2 h1 {
+        font-size: 60px;
+        color: white;
+        line-height: 100px;
+    }
+
+    #player2 {
+        background-color: background-color: #08AEEA;
+        /*background-image: linear-gradient(0deg, #08AEEA 0%, #2AF598 100%);*/
+        background-image: linear-gradient(45deg, blue 0%, blue 100%);
+        border-bottom-left-radius: 30px;
+        border-bottom-right-radius: 30px;
+        float: right;
+        width: 250px;
+        /*height: 450px;*/
+        height: 350px;
+        margin: 0 auto;
+    }
+
+    .scoren1 {
+
+    }
+
+    .score {
+        font-family: monospace;
+        text-align: center;
+        color: white;
+        position: relative;
+        text-align: center;
+        float: left;
+        font-size: 300px;
+        line-height: 90px;
+        list-style: none;
+        left: 15%;
+        width: 15%;
+        height: 350px;
+    }
+
+    .scoreblock {
+        background-color: rgba(0, 0, 0, 0);
+        border-radius: 15px;
+        color: white;
+        position: relative;
+        float: left;
+        font-size: 100px;
+        /*line-height: 150px;*/
+        line-height: 30px;
+        list-style: none;
+        left: 15%;
+        margin: 0 50px;
+        width: 20%;
+        height: 150px;
+    }
+
+
+</style>
+<script type="text/javascript">
+    var score1 = document.getElementById("p120");
+    var score2 = document.getElementById("p220");
+
+    score1.innerHTML = score1.value;
+    score2.innerHTML = score2.value;
+
+    function addOne(score) {
+        score.value++;
+        score.innerHTML = score.value;
+    }
+
+    function minusOne(score) {
+        score.value--;
+        score.innerHTML = score.value;
+    }
+
+    function violation(score1) {
+
+    }
+</script>
+<script src="js/particles.js"></script>
+<script type="text/javascript">
+    // particlesJS.load('particles', './js/app/particles.json', function() {
+    //  console.log('callback - particles.js config loaded');
+    // });
+
+    particlesJS("particles", {
+        "particles": {
+            "number": {
+                "value": 20,
+                "density": {
+                    "enable": true,
+                    "value_area": 1000
+                }
+            },
+            "color": {
+                "value": "#ffffff"
+            },
+            "shape": {
+                "type": "circle",
+                "stroke": {
+                    "width": 0,
+                    "color": "#000000"
+                },
+                "polygon": {
+                    "nb_sides": 0
+                },
+                "image": {
+                    "src": "img/github.svg",
+                    "width": 100,
+                    "height": 100
+                }
+            },
+            "opacity": {
+                "value": 0.5,
+                "random": false,
+                "anim": {
+                    "enable": false,
+                    "speed": 1,
+                    "opacity_min": 0.1,
+                    "sync": false
+                }
+            },
+            "size": {
+                "value": 10,
+                "random": true,
+                "anim": {
+                    "enable": false,
+                    "speed": 50,
+                    "size_min": 0.1,
+                    "sync": true
+                }
+            },
+            "line_linked": {
+                "enable": true,
+                "distance": 300,
+                "color": "#ffffff",
+                "opacity": 0.4,
+                "width": 2
+            },
+            "move": {
+                "enable": true,
+                "speed": 8,
+                "direction": "none",
+                "random": false,
+                "straight": false,
+                "out_mode": "out",
+                "bounce": false,
+                "attract": {
+                    "enable": false,
+                    "rotateX": 600,
+                    "rotateY": 1200
+                }
+            }
+        },
+        "interactivity": {
+            "detect_on": "canvas",
+            "events": {
+                "onhover": {
+                    "enable": false,
+                    "mode": "repulse"
+                },
+                "onclick": {
+                    "enable": true,
+                    "mode": "push"
+                },
+                "resize": true
+            },
+            "modes": {
+                "grab": {
+                    "distance": 800,
+                    "line_linked": {
+                        "opacity": 1
+                    }
+                },
+                "bubble": {
+                    "distance": 800,
+                    "size": 80,
+                    "duration": 2,
+                    "opacity": 0.8,
+                    "speed": 3
+                },
+                "repulse": {
+                    "distance": 400,
+                    "duration": 0.4
+                },
+                "push": {
+                    "particles_nb": 4
+                },
+                "remove": {
+                    "particles_nb": 2
+                }
+            }
+        },
+        "retina_detect": true
+    });
+</script>
+<!--判罚计数框-->
+<!--css-->
+<style type="text/css">
+    body {
+        margin: 0;
+        padding: 0;
+        font-size: 30px;
+        font-family: 'Microsoft YaHei', 'Times New Roman', Times, serif;
+        letter-spacing: 0;
+    }
+
+    ol {
+        margin: 0;
+        padding: 20px 0 20px 30px;
+    }
+
+    ol > li {
+        margin: 0 0 10px 0;
+    }
+
+    .box {
+        font-family: monospace;
+        border: #e5e5e5 solid 20px;
+        display: inline-block;
+        overflow: hidden;
+        margin: 0 auto;
+        float: right;
+    }
+
+    .number1-box {
+        font-family: monospace;
+        border: #e5e5e5 solid 20px;
+        display: inline-block;
+        overflow: hidden;
+        margin: 0 auto;
+        float: left;
+    }
+
+    .number1-box input[type='text'] {
+        height: 60px;
+        border-top: none;
+        border-bottom: none;
+        border-left: #e5e5e5 solid 1px;
+        border-right: #e5e5e5 solid 1px;
+        margin: 0;
+        text-align: center;
+        width: 50px;
+        outline: none;
+        padding: 0 5px;
+        float: left;
+        line-height: 30px;
+    }
+
+    .number1-box input[type='button'] {
+        height: 60px;
+        width: 50px;
+        float: left;
+        border: none;
+        outline: none;
+        background-color: #f3f3f3;
+        line-height: 30px;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .number1-box input[type='button']:hover {
+        background-color: #f9f9f9;
+    }
+
+    .number1-box input[type='button']:active {
+        background-color: #f6f6f6;
+
+    }
+
+    .box input[type='text'] {
+        height: 60px;
+        border-top: none;
+        border-bottom: none;
+        border-left: #e5e5e5 solid 1px;
+        border-right: #e5e5e5 solid 1px;
+        margin: 0;
+        text-align: center;
+        width: 50px;
+        outline: none;
+        padding: 0 5px;
+        float: left;
+        line-height: 30px;
+    }
+
+    .box input[type='button'] {
+        height: 60px;
+        width: 50px;
+        float: left;
+        border: none;
+        outline: none;
+        background-color: #f3f3f3;
+        line-height: 30px;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .box input[type='button']:hover {
+        background-color: #f9f9f9;
+    }
+
+    .box input[type='button']:active {
+        background-color: #f6f6f6;
+
+    }
+</style>
+<!--html-->
+<script type="text/javascript">
+    $(document.documentElement).on("click", ".on-number", function () {
+        var $val = $(this).siblings("input[type='text']"),
+            val = parseInt($val.val(), 10) + parseInt($(this).data("v"));
+        $val.val(isNaN(val) ? 0 : val);
+    });
+</script>
+<!--against the rule-->
+<script type="text/javascript">
+    var i = 0;
+
+    function appendPoint() {
+        // for (var j=0; j<50; i++, j++) {
+        $('#collection').append('●');
+        // }
+        // if (i < 5000) window.setTimeout(appendSomeItems, 0);
+        score1.value++;
+        score1.innerHTML = score1.value;
+    }
+</script>
+<script type="text/javascript">
+    var i = 0;
+
+    function appendPoint1() {
+        // for (var j=0; j<50; i++, j++) {
+        $('#collection1').append('●');
+        score2.value++;
+        score2.innerHTML = score2.value;
+        // }
+        // if (i < 5000) window.setTimeout(appendSomeItems, 0);
+    }
+</script>
+<style type="text/css">
+    .but {
+        float: right;
+        left: 15%;
+        margin: 0 50px;
+        width: 10%;
+        height: 100px;
+    }
+
+    .creatnewpoint {
+        float: right;
+        outline: none;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .creatnewpoint1 {
+        float: left;
+        outline: none;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .button1 {
+        float: left;
+        left: 15%;
+        margin: 0 50px;
+        width: 10%;
+        height: 100px;
+    }
+</style>
+<!--数据导出-->
+<div class="new">
+<button id="sf" type="button">数据导出</button>
+</div>
+<script src="js/FileSaver.js"></script>
+<script id="new" type="text/javascript">
+    document.querySelector('#sf').addEventListener('click', saveFile);
+
+    function fakeClick(obj) { 
+       var ev = document.createEvent("MouseEvents");
+　　　　ev.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+　　　　obj.dispatchEvent(ev);
+　　}
+
+　　function exportRaw(name, data) {
+　　　　var urlObject = window.URL || window.webkitURL || window;
+　　　　var export_blob = new Blob([data]);
+　　　　var save_link = document.createElementNS("http://www.w3.org/1999/xhtml", "a")
+　　　　save_link.href = urlObject.createObjectURL(export_blob);
+　　　　save_link.download = name;
+　　　　fakeClick(save_link);
+　　}
+　　function saveFile(){
+        var inValue = "红方"+document.getElementById("p120").innerHTML;
+        var inT = "青方"+document.getElementById("p220").innerHTML;
+        exportRaw('得分.txt',inValue+inT);
+　　}
+</script>
+<style type="text/css">
+    .new{
+        position:fixed; bottom:0;
+        text-align: center;
+    }
+</style>
+</html>
